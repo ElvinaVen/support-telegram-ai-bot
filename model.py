@@ -47,9 +47,9 @@ class LLMService:
             logger.error(f"Ошибка при авторизации модели. Проверьте настройки аккаунта и область действия ключа API. {str(e)}")
 
     def chat(self, message, history):
-        # Берем последние два сообщения из истории, чтобы не перегружать запрос
+        # Берем последние 8 сообщения из истории, чтобы не перегружать запрос
         messages=[
-            {"role": "system", "content": self.sys_prompt}] + history[-4:] + [{"role": "user", "content": message}]
+            {"role": "system", "content": self.sys_prompt}] + history[-8:] + [{"role": "user", "content": message}]
         logger.debug(f"Messages: {messages}")
         try:
             # Обращаемся к API
@@ -71,7 +71,9 @@ class OllamaService:
     """
     Сервис для взаимодействия с локальным Ollama API.
     """
-    def __init__(self, prompt_file, base_url="http://localhost:11434", model="llama3"):
+    def __init__(self, prompt_file, model, base_url="http://192.168.1.144:11434"):
+
+        
         """
         Аргументы:
             prompt_file (str): Путь к файлу с системным промптом.
@@ -95,7 +97,7 @@ class OllamaService:
             str: Ответ Ollama.
         """
         # Формируем сообщения для Ollama (system prompt + история + новое сообщение)
-        messages = [{"role": "system", "content": self.sys_prompt}] + history[-4:] + [{"role": "user", "content": message}]
+        messages = [{"role": "system", "content": self.sys_prompt}] + history[-8:] + [{"role": "user", "content": message}]
         payload = {
             "model": self.model,
             "messages": messages,
@@ -110,8 +112,16 @@ class OllamaService:
             logger.error(f"Ollama error: {str(e)}")
             return f"Ошибка Ollama: {str(e)}"
 
+# Ниже выбираем модель
+# Для использования Yandex GPT:
+# llm_1 = LLMService('prompts/prompt_1.txt')
 
-llm_1 = LLMService('prompts/prompt_1.txt')
+# Для использования Ollama (текущая настройка):
+llm_1 = OllamaService(prompt_file='prompts/prompt_1.txt', 
+                     base_url="http://192.168.1.144:11434", 
+                     model="gemma3:12b")
+#llm_1 = OllamaService(prompt_file='prompts/prompt_1.txt',base_url="http://192.168.1.144:11434", model="gpt-oss:20b")
+
 
 
 cache = {}
